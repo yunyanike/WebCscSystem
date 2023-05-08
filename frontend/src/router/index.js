@@ -30,86 +30,95 @@ import Layout from '@/layout'
  * a base page that does not have permission requirements
  * all roles can be accessed
  */
-export const constantRoutes = [
-  {
-    path: '/login',
-    component: () => import('@/views/login/index'),
-    hidden: true
-  },
+export const constantRoutes = [{
+        path: '/login',
+        component: () =>
+            import ('@/views/login/index'),
+        hidden: true
+    },
 
-  {
-    path: '/404',
-    component: () => import('@/views/404'),
-    hidden: true
-  },
+    {
+        path: '/404',
+        component: () =>
+            import ('@/views/404'),
+        hidden: true
+    },
 
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: '主页', icon: 'el-icon-s-home' }
-    }]
-  },
+    {
+        path: '/',
+        component: Layout,
+        redirect: '/dashboard',
+        children: [{
+            path: 'dashboard',
+            name: 'Dashboard',
+            component: () =>
+                import ('@/views/dashboard/index'),
+            meta: { title: '主页', icon: 'el-icon-s-home' }
+        }]
+    },
 
-  {
-    path: '/csc',
-    component: Layout,
-    redirect: '/csc/onlinecsc',
-    name: 'Csc',
-    meta: { title: '纠错', icon: 'el-icon-s-help' },
-    children: [
-      {
-        path: 'onlinecsc',
-        name: 'Onlinecsc',
-        component: () => import('@/views/onlinecsc/index'),
-        meta: { title: '在线纠错', icon: 'el-icon-edit' }
-      },
-      {
-        path: 'documentcsc',
-        name: 'Documentcsc',
-        component: () => import('@/views/documentcsc/index'),
-        meta: { title: '文档纠错', icon: 'el-icon-document' }
-      },
-      {
-        path: 'imagecsc',
-        name: 'Imagecsc',
-        component: () => import('@/views/imagecsc/index'),
-        meta: { title: '图片纠错', icon: 'el-icon-camera-solid' }
-      }
-    ]
-  },
+    {
+        path: '/csc',
+        component: Layout,
+        redirect: '/csc/onlinecsc',
+        name: 'Csc',
+        meta: { title: '工具', icon: 'el-icon-s-help' },
+        children: [{
+                path: 'onlinecsc',
+                name: 'Onlinecsc',
+                component: () =>
+                    import ('@/views/onlinecsc/index'),
+                meta: { title: '在线纠错', icon: 'el-icon-edit' }
+            },
+            {
+                path: 'documentcsc',
+                name: 'Documentcsc',
+                component: () =>
+                    import ('@/views/documentcsc/index'),
+                meta: { title: '文档纠错', icon: 'el-icon-document' }
+            },
+            {
+                path: 'imagecsc',
+                name: 'Imagecsc',
+                component: () =>
+                    import ('@/views/imagecsc/index'),
+                meta: { title: '图片纠错', icon: 'el-icon-camera-solid' }
+            },
+            {
+                path: 'padfaces',
+                name: 'padfaces',
+                component: () =>
+                    import ('@/views/padfaces/index'),
+                meta: { title: '人脸识别', icon: 'el-icon-picture' }
+            }
+        ]
+    },
 
-  {
-    path: 'external-link',
-    component: Layout,
-    children: [
-      {
-        path: 'https://github.com/hchhtc123/ErrorCorrectionSystem',
-        meta: { title: '跳转Github', icon: 'link' }
-      }
-    ]
-  },
+    {
+        path: 'external-link',
+        component: Layout,
+        children: [{
+            path: 'https://github.com/hchhtc123/ErrorCorrectionSystem',
+            meta: { title: '跳转Github', icon: 'link' }
+        }]
+    },
 
-  // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+    // 404 page must be placed at the end !!!
+    { path: '*', redirect: '/404', hidden: true }
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
+    // mode: 'history', // require service support
+    scrollBehavior: () => ({ y: 0 }),
+    routes: constantRoutes
 })
 
 const router = createRouter()
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
-  const newRouter = createRouter()
-  router.matcher = newRouter.matcher // reset router
+    const newRouter = createRouter()
+    router.matcher = newRouter.matcher // reset router
 }
 
 export default router
