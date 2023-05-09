@@ -244,12 +244,12 @@ async def ImageErrorCorrection(file: UploadFile):
         fout = open(imgPath, 'wb')
         fout.write(imgBytes)
         fout.close()
-        print("文件上传成功！")
+        print("接口: /v1/faceDetect/ : 文件上传成功！")
 
         # 2. 图像文件转cv2, 并缩放到指定尺寸 --> 尺寸太大或太小，识别精度都会变差
         img_cv2 = np.asarray(bytearray(imgBytes), dtype=np.uint8)  # (len,)
         img_cv2 = cv2.imdecode(img_cv2, cv2.IMREAD_COLOR)  # (w, h, c)
-        img_cv2 = cv2.resize(img_cv2, (250, 250), interpolation=cv2.INTER_LINEAR)
+        # img_cv2 = cv2.resize(img_cv2, (250, 250), interpolation=cv2.INTER_LINEAR)
 
         # 3. cv2转str(base64)
         img_base64 = cv2_to_base64(img_cv2)
@@ -261,18 +261,22 @@ async def ImageErrorCorrection(file: UploadFile):
 
         start_time = time.time()
         r = requests.post(url=url, headers=headers, data=json.dumps(data))
-        print(r.json()["results"])
-        use_time = time.time() - start_time
+        print('打印返回结果: ', r)
+        print('打印json格式结果: ', r.json()["results"])
+        #use_time = time.time() - start_time
 
+        lfaces = r.json()['results'][0]['data']
         rectangle = r.json()['results'][0]['data'][0]  # 一张图片 --> dict{confidence, left, top, right, bottom}
         print(type(rectangle), rectangle)
+
         # 5. cv2，json --> 画矩形 --> cv2
-        cv2.rectangle(
-            img_cv2,
-            (rectangle['left'], rectangle['top']),
-            (rectangle['right'], rectangle['bottom']),
-            (255, 0, 0),  # 蓝色
-            thickness=2)
+        for rec in lfaces:
+            cv2.rectangle(
+                img_cv2,
+                (rec['left'], rec['top']),
+                (rec['right'], rec['bottom']),
+                (255, 0, 0),  # 蓝色
+                thickness=2)
 
         # 6. cv2转str(base64)
         img_base64 = cv2_to_base64(img_cv2)
@@ -293,6 +297,68 @@ async def ImageErrorCorrection(file: UploadFile):
         # bottom (int): 边界框的右下角y坐标
         # 接口结果返回
         results = {"message": "success", "filename": str(now_time), "imgResult": str(img_base64), "infoResults": rectangle}
+        return results
+    # 异常处理
+    except Exception as e:
+        print("异常信息：", e)
+        raise HTTPException(status_code=500, detail=str("请求失败，服务器端发生异常！异常信息提示：" + str(e)))
+
+# 图片纠错接口
+@app.post("/v2/faceDetect/", status_code=200)
+# 定义路径操作函数，当接口被访问将调用该函数
+async def V2FaceDetect(file: UploadFile):
+    import base64
+    import requests
+    import json
+
+    def cv2_to_base64(image):
+        data = cv2.imencode('.jpg', image)[1]
+        return base64.b64encode(data.tobytes()).decode('utf8')
+
+    now_time = int(time.mktime(time.localtime(time.time())))
+    # 1. 读取上传的图像
+    print(file)
+    img = file.file.read()
+    print(img)
+    imgName = file.filename
+    print(imgName)
+    # 判断上传文件类型
+    imgType = imgName.split(".")[-1]
+    print(imgType)
+    if imgType != "png" and imgType != "jpg" and imgType != "jpeg":
+        raise HTTPException(status_code=406, detail=str("请求失败，上传图片格式不正确！请上传jpg或png图片！"))
+    try:
+        # 发送HTTP请求
+        img_base64 = cv2_to_base64(cv2.imread("C:/Users/Administrator/Desktop/timg/1.jpg"))
+        data = {'images': [img_base64]}
+        headers = {"Content-type": "application/json"}
+        url = "http://47.107.240.92:19003/predict/pyramidbox_lite_mobile"
+        # print(url)
+        r = requests.post(url=url, headers=headers, data=json.dumps(data))
+
+        print('打印返回结果: ', r)
+        print('打印json格式结果: ', r.json()["results"])
+
+        rectangle = r.json()['results'][0]['data'][0]  # 一张图片 --> dict{confidence, left, top, right, bottom}
+        print(type(rectangle), rectangle)
+        # 5. cv2，json --> 画矩形 --> cv2
+        cv2.rectangle(
+            img,
+            (rectangle['left'], rectangle['top']),
+            (rectangle['right'], rectangle['bottom']),
+            (255, 0, 0),  # 蓝色
+            thickness=2)
+
+        # 6. cv2转str(base64)
+        # img_base64 = cv2_to_base64(img_cv2)
+
+        # 7. str(base64) 返回到前端
+        # confidence=rectangle['confidence']
+        rectangle["confidence"] = round(rectangle["confidence"], 2)
+        rectangle["识别的置信度"] = rectangle.pop("confidence")
+
+        results = {"message": "success", "filename": str(now_time), "imgResult": str(img_base64),
+                   "infoResults": rectangle}
         return results
     # 异常处理
     except Exception as e:

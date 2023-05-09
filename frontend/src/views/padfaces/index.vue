@@ -135,7 +135,7 @@ export default {
       var form = new FormData()
       form.append('file', that.fileData)
       // 请求后端API服务，请求方法为post
-      axios.post('http://127.0.0.1:8000/v1/faceDetect', form, config).then((response) => {
+      axios.post('http://127.0.0.1:8000/v1/faceDetect/', form, config).then((response) => {
         // console.log(response.data.infoResults)
         that.confResult = JSON.stringify(response.data.infoResults)
         that.imgResult = `data:image/png;base64, ${response.data.imgResult}`
